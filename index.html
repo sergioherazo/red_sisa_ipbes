@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mapa IPBES Red SISA</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,700;1,400&display=swap">
+<style>
+/* Idea: la lona de la Red SISA hecha página. Verdes de la lona, vino institucional solo para la acción principal.
+   Paneles de esquinas orgánicas, fichas rellenas = categoría principal, fichas de borde punteado = secundarias. */
+:root{
+  --bg:#f3f6ea; --surface:#ffffff; --ink:#1d2b1a; --muted:#566852; --line:#d3ddc7;
+  --head-bg:#3f5a39; --head-ink:#f3f6ea; --head-muted:#c9d9b8;
+  --panel:#dfeac3; --panel-sky:#cfe3ea; --panel-sky-in:#e4f0f4; --panel-grey:#e3e5e0; --panel-soft:#e9f1d6;
+  --chip-fill:#3f5a39; --chip-ink:#ffffff; --chip-bd:#3f5a39;
+  --accent:#851835; --accent-ink:#ffffff; --focus:#2f6fb0; --ok:#2f6b2a; --warn:#8a5a00;
+  --font-display:'Merriweather',Georgia,serif; --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131d11; --surface:#1c2a19; --ink:#e8f0dc; --muted:#a6b69d; --line:#33442e;
+    --head-bg:#1d2f1a; --head-ink:#eef5e2; --head-muted:#a9c096;
+    --panel:#26391f; --panel-sky:#1d3641; --panel-sky-in:#254654; --panel-grey:#2a2f29; --panel-soft:#2d4326;
+    --chip-fill:#b9d27b; --chip-ink:#142011; --chip-bd:#b9d27b;
+    --accent:#d9718c; --accent-ink:#1a0a10; --focus:#7db4ee; --ok:#8fd486; --warn:#e8bd62;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131d11; --surface:#1c2a19; --ink:#e8f0dc; --muted:#a6b69d; --line:#33442e;
+  --head-bg:#1d2f1a; --head-ink:#eef5e2; --head-muted:#a9c096;
+  --panel:#26391f; --panel-sky:#1d3641; --panel-sky-in:#254654; --panel-grey:#2a2f29; --panel-soft:#2d4326;
+  --chip-fill:#b9d27b; --chip-ink:#142011; --chip-bd:#b9d27b;
+  --accent:#d9718c; --accent-ink:#1a0a10; --focus:#7db4ee; --ok:#8fd486; --warn:#e8bd62;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.5;margin:0}
+h1,h2,h3{font-family:var(--font-display);line-height:1.25;text-wrap:balance;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* Encabezado */
+header.top{background:var(--head-bg);color:var(--head-ink);padding-block:28px 0}
+header.top .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--head-muted);margin:0 0 6px}
+header.top h1{font-size:clamp(24px,4.4vw,36px)}
+header.top p.sub{margin:6px 0 0;font-family:var(--font-display);font-style:italic;font-weight:400;color:var(--head-muted)}
+nav.tabs{display:flex;gap:4px;margin-top:22px}
+nav.tabs button{font:inherit;font-weight:600;color:var(--head-muted);background:transparent;border:0;padding:12px 20px;border-radius:14px 14px 0 0;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--bg);color:var(--ink)}
+nav.tabs button:not([aria-selected="true"]):hover{color:var(--head-ink)}
+
+main{padding-block:24px 56px}
+.demo{background:var(--panel-soft);border-left:4px solid var(--warn);padding:10px 14px;border-radius:8px;font-size:14px;margin:0 0 18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:22px;margin-bottom:18px}
+.card h2{font-size:20px;margin-bottom:4px}
+.card .hint{color:var(--muted);font-size:14px;margin:0 0 14px}
+.step{display:inline-block;font-family:var(--font-body);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+
+/* Selector de semillero */
+input[type=text],input[type=email],input[type=search],textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+textarea{min-height:84px;resize:vertical}
+.lista{max-height:272px;overflow:auto;margin-top:10px;border:1.5px solid var(--line);border-radius:12px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+.opt:last-child{border-bottom:0}
+.opt:hover{background:var(--panel-soft)}
+.opt input{margin-top:4px;accent-color:var(--chip-fill)}
+.opt .done{display:block;font-size:12px;color:var(--ok)}
+.opt.otro{font-style:italic}
+.field{margin-top:12px}
+.field label.l{display:block;font-weight:600;font-size:14px;margin-bottom:4px}
+
+/* Categorías */
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cat{display:block;position:relative;cursor:pointer}
+.cat input{position:absolute;opacity:0;inset:0}
+.cat .box{display:block;height:100%;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg)}
+.cat .t{display:block;font-weight:600}
+.cat .d{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.cat input:checked + .box{background:var(--panel);border-color:var(--chip-bd);box-shadow:inset 0 0 0 1.5px var(--chip-bd)}
+.cat input:focus-visible + .box{outline:3px solid var(--focus);outline-offset:2px}
+.secs{display:flex;flex-wrap:wrap;gap:8px}
+.sec{position:relative;cursor:pointer}
+.sec input{position:absolute;opacity:0;inset:0}
+.sec span{display:inline-block;padding:7px 14px;border-radius:999px;border:1.5px dashed var(--chip-bd);font-size:14px}
+.sec input:checked + span{background:var(--panel);border-style:solid;font-weight:600}
+.sec input:disabled + span{opacity:.35;cursor:not-allowed}
+.sec input:focus-visible + span{outline:3px solid var(--focus);outline-offset:2px}
+.count{font-size:13px;color:var(--muted);margin-top:8px}
+
+.btn{font:inherit;font-weight:600;border:0;border-radius:14px;padding:13px 26px;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.6;cursor:wait}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.msg{margin-top:12px;font-size:14px;min-height:20px}
+.msg.err{color:var(--accent)} .msg.ok{color:var(--ok)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* Resultados */
+.prog{height:12px;border-radius:999px;background:var(--panel-grey);overflow:hidden;margin:10px 0 6px}
+.prog i{display:block;height:100%;background:var(--chip-fill);border-radius:999px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:14px;color:var(--muted);margin:0 0 14px}
+.chip{display:inline-block;padding:4px 11px;border-radius:999px;font-size:13px;line-height:1.35;margin:0 6px 6px 0;max-width:100%}
+.chip.pri{background:var(--chip-fill);color:var(--chip-ink);font-weight:600}
+.chip.sec{border:1.5px dashed var(--chip-bd);color:var(--ink)}
+.chip.pend{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+.chip.mine{outline:3px solid var(--accent);outline-offset:1px}
+.mapa{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.panel{background:var(--panel);padding:20px 22px 20px;min-width:0}
+.panel:nth-child(1){border-radius:36px 36px 36px 80px}
+.panel:nth-child(2){border-radius:36px 80px 36px 36px}
+.panel:nth-child(3){border-radius:36px 36px 80px 36px}
+.panel:nth-child(4){border-radius:80px 36px 36px 36px}
+.panel h3{font-size:16px}
+.panel .n{font-size:13px;color:var(--muted);margin:2px 0 12px}
+.panel .vacio{font-size:13px;color:var(--muted);font-style:italic;margin:0 0 8px}
+.motores{grid-column:1/-1;background:var(--panel-sky);border-radius:56px;padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.motores > h3{grid-column:1/-1;text-align:center;font-size:15px;padding-top:4px}
+.motores .panel{background:var(--panel-sky-in);border-radius:36px}
+.ancha{grid-column:1/-1;border-radius:36px}
+.ancha.trans{background:var(--panel-soft)}
+.ancha.gris{background:var(--panel-grey)}
+.tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+.tools input{max-width:340px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:720px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--panel-soft);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.num,th.num{font-variant-numeric:tabular-nums}
+.tag{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--panel-grey)}
+.tag.si{background:var(--panel);color:var(--ok)} .tag.no{color:var(--accent)} .tag.par{color:var(--warn)}
+.sum{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;color:var(--muted);margin-bottom:10px}
+.gracias h2{font-size:24px}
+.resumen{background:var(--panel);border-radius:16px;padding:14px 16px;margin:14px 0}
+[hidden]{display:none!important}
+@media (max-width:720px){
+  .cats,.mapa,.motores{grid-template-columns:1fr}
+  .panel:nth-child(n){border-radius:32px}
+  .card{padding:18px}
+}
+@media (prefers-reduced-motion:no-preference){.prog i{transition:width .5s ease}}
+</style>
+<script src="datos.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <p class="eyebrow">Red SISA · Marco IPBES</p>
+    <h1>Red de Semilleros en Sistemas Ambientales</h1>
+    <p class="sub">Nodos de ciencia, redes de vida</p>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button role="tab" id="tab-responder" aria-controls="v-responder" aria-selected="true">Ubicar mi semillero</button>
+      <button role="tab" id="tab-resultados" aria-controls="v-resultados" aria-selected="false">Mapa de la red</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="demo" id="demo" hidden>Modo de prueba: las respuestas solo se guardan en este navegador. Para recibir las de todos los semilleros, completa <code>config.js</code> (ver README).</p>
+
+  <!-- ===== Responder ===== -->
+  <div id="v-responder" role="tabpanel" aria-labelledby="tab-responder">
+    <form id="form" novalidate>
+      <section class="card">
+        <span class="step">Paso 1 de 3</span>
+        <h2>¿Cuál es tu semillero?</h2>
+        <p class="hint">Responde una vez por semillero. Si alguien más de tu semillero ya respondió, tu envío reemplaza esa respuesta.</p>
+        <label class="hint" for="buscar" style="display:block;margin-bottom:6px">Busca por nombre</label>
+        <input type="search" id="buscar" placeholder="Por ejemplo: CHAGRA, Minka, Polygesta" autocomplete="off">
+        <div class="lista" id="lista" role="radiogroup" aria-label="Semilleros"></div>
+        <div class="field" id="otroBox" hidden>
+          <label class="l" for="otroNombre">Nombre de tu semillero</label>
+          <input type="text" id="otroNombre" maxlength="150" autocomplete="off">
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="step">Paso 2 de 3</span>
+        <h2>¿Dónde ubicas tu semillero en el marco IPBES?</h2>
+        <p class="hint">Elige la categoría principal: la que mejor describe lo que hace tu semillero.</p>
+        <div class="cats" id="cats" role="radiogroup" aria-label="Categoría principal"></div>
+
+        <div class="field" style="margin-top:22px">
+          <h3 style="font-size:16px;font-family:var(--font-body)">Categorías secundarias <span style="font-weight:400;color:var(--muted)">(opcional, hasta 3)</span></h3>
+          <p class="hint" style="margin-top:2px">Otras categorías con las que tu trabajo también se relaciona.</p>
+          <div class="secs" id="secs"></div>
+          <div class="count" id="secCount" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="step">Paso 3 de 3</span>
+        <h2>Para terminar</h2>
+        <div class="field">
+          <label class="l" for="motivo">¿Por qué esa ubicación? <span style="font-weight:400;color:var(--muted)">(opcional, se muestra en los resultados)</span></label>
+          <textarea id="motivo" maxlength="280" placeholder="Una o dos frases"></textarea>
+        </div>
+        <div class="field">
+          <label class="l" for="cnombre">Tu nombre <span style="font-weight:400;color:var(--muted)">(opcional, no se muestra)</span></label>
+          <input type="text" id="cnombre" maxlength="120" autocomplete="name">
+        </div>
+        <div class="field">
+          <label class="l" for="ccorreo">Tu correo <span style="font-weight:400;color:var(--muted)">(opcional, no se muestra)</span></label>
+          <input type="email" id="ccorreo" maxlength="120" autocomplete="email">
+        </div>
+        <div class="hp" aria-hidden="true"><label>No llenar<input type="text" id="web" tabindex="-1" autocomplete="off"></label></div>
+        <div class="row" style="margin-top:20px">
+          <button type="submit" class="btn" id="enviar">Enviar respuesta</button>
+        </div>
+        <div class="msg" id="msg" role="status" aria-live="polite"></div>
+      </section>
+    </form>
+
+    <section class="card gracias" id="gracias" hidden>
+      <h2>Gracias, ya quedó registrado</h2>
+      <div class="resumen" id="resumenEnvio"></div>
+      <div class="row">
+        <button type="button" class="btn" id="verMapa">Ver el mapa de la red</button>
+        <button type="button" class="btn ghost" id="otraVez">Corregir mi respuesta</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== Resultados ===== -->
+  <div id="v-resultados" role="tabpanel" aria-labelledby="tab-resultados" hidden>
+    <section class="card">
+      <h2 id="progTitulo">Semilleros que han respondido</h2>
+      <div class="prog" aria-hidden="true"><i id="progBar" style="width:0%"></i></div>
+      <p class="hint" id="progTxt" style="margin:0"></p>
+      <div class="msg err" id="errRes"></div>
+    </section>
+
+    <h2 style="margin:26px 0 6px;font-size:22px">Mapa de la red</h2>
+    <p class="legend">
+      <span><span class="chip pri" style="margin:0">Nombre</span> categoría principal</span>
+      <span><span class="chip sec" style="margin:0">Nombre</span> categoría secundaria</span>
+      <span>Un semillero aparece en su principal y en sus secundarias.</span>
+    </p>
+    <div class="mapa" id="mapa"></div>
+
+    <h2 style="margin:34px 0 10px;font-size:22px">Respuestas</h2>
+    <div class="sum" id="sumCoincide"></div>
+    <div class="tools">
+      <input type="search" id="filtro" placeholder="Filtrar por semillero o categoría" aria-label="Filtrar respuestas">
+      <button type="button" class="btn ghost" id="refrescar">Actualizar</button>
+      <button type="button" class="btn ghost" id="csv">Descargar CSV</button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Semillero</th><th>Principal</th><th>Secundarias</th><th>Asignación previa del equipo</th><th>Coincide</th><th>Comentario</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+'use strict';
+var CATS = window.CATEGORIAS || [], SEMS = window.SEMILLEROS || [], CFG = window.RED_SISA_CONFIG || {};
+var REMOTE = !!(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+var DEMO_KEY = 'redsisa_ipbes_demo', memDemo = [];
+var respuestas = [], mine = null, semSel = null; // semSel: id | '__otro'
+var $ = function(id){ return document.getElementById(id); };
+function el(tag, cls, txt){ var e = document.createElement(tag); if(cls) e.className = cls; if(txt != null) e.textContent = txt; return e; }
+function norm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function cat(id){ for(var i=0;i<CATS.length;i++) if(CATS[i].id===id) return CATS[i]; return null; }
+function catName(id){ var c = cat(id); return c ? c.nombre : '—'; }
+function semByName(n){ for(var i=0;i<SEMS.length;i++) if(SEMS[i].nombre===n) return SEMS[i]; return null; }
+
+/* ---------- Almacenamiento ---------- */
+function hdr(){
+  var h = {apikey:CFG.SUPABASE_ANON_KEY};
+  // Las claves antiguas (anon, empiezan por "eyJ") también van como Bearer; las nuevas (sb_publishable_...) solo como apikey.
+  if(/^eyJ/.test(CFG.SUPABASE_ANON_KEY)) h.Authorization = 'Bearer '+CFG.SUPABASE_ANON_KEY;
+  return h;
+}
+function demoRead(){ try{ var v = localStorage.getItem(DEMO_KEY); return v ? JSON.parse(v) : memDemo; }catch(e){ return memDemo; } }
+function demoWrite(a){ memDemo = a; try{ localStorage.setItem(DEMO_KEY, JSON.stringify(a)); }catch(e){} }
+function listar(){
+  if(REMOTE){
+    return fetch(CFG.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/respuestas_actuales?select=*', {headers:hdr()})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); });
+  }
+  return Promise.resolve(demoRead());
+}
+function guardar(p){
+  if(REMOTE){
+    var h = hdr(); h['Content-Type']='application/json'; h['Prefer']='return=minimal';
+    return fetch(CFG.SUPABASE_URL.replace(/\/$/,'')+'/rest/v1/respuestas', {method:'POST', headers:h, body:JSON.stringify(p)})
+      .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); });
+  }
+  var a = demoRead().filter(function(x){ return x.semillero !== p.semillero; });
+  a.push({semillero:p.semillero, semillero_otro:p.semillero_otro, principal:p.principal, secundarias:p.secundarias, motivo:p.motivo, created_at:new Date().toISOString()});
+  demoWrite(a); return Promise.resolve();
+}
+
+/* ---------- Pestañas ---------- */
+function mostrar(v){
+  var res = v === 'resultados';
+  $('v-responder').hidden = res; $('v-resultados').hidden = !res;
+  $('tab-responder').setAttribute('aria-selected', String(!res));
+  $('tab-resultados').setAttribute('aria-selected', String(res));
+  if(res) cargarResultados();
+  try{ history.replaceState(null,'', res ? '#resultados' : '#responder'); }catch(e){}
+}
+$('tab-responder').onclick = function(){ mostrar('responder'); };
+$('tab-resultados').onclick = function(){ mostrar('resultados'); };
+
+/* ---------- Paso 1: semillero ---------- */
+function respondidos(){ var s = {}; respuestas.forEach(function(r){ s[r.semillero]=1; }); return s; }
+function pintarLista(){
+  var q = norm($('buscar').value), ya = respondidos(), box = $('lista');
+  box.textContent = '';
+  var n = 0;
+  SEMS.forEach(function(s){
+    if(q && norm(s.nombre).indexOf(q) < 0 && norm(s.corto).indexOf(q) < 0) return;
+    n++;
+    var l = el('label','opt'), i = el('input'); i.type='radio'; i.name='sem'; i.value=s.id; i.checked = semSel===s.id;
+    i.onchange = function(){ semSel = s.id; $('otroBox').hidden = true; };
+    var t = el('span'); t.appendChild(document.createTextNode(s.nombre));
+    if(ya[s.nombre]){ var d = el('span','done','Ya respondió: puedes actualizar su ubicación'); t.appendChild(d); }
+    l.appendChild(i); l.appendChild(t); box.appendChild(l);
+  });
+  var lo = el('label','opt otro'), io = el('input'); io.type='radio'; io.name='sem'; io.value='__otro'; io.checked = semSel==='__otro';
+  io.onchange = function(){ semSel='__otro'; $('otroBox').hidden=false; $('otroNombre').focus(); };
+  lo.appendChild(io); lo.appendChild(el('span',null,'Mi semillero no está en la lista')); box.appendChild(lo);
+}
+$('buscar').oninput = pintarLista;
+
+/* ---------- Paso 2: categorías ---------- */
+function pintarCats(){
+  var box = $('cats'); box.textContent = '';
+  CATS.forEach(function(c){
+    var l = el('label','cat'), i = el('input'); i.type='radio'; i.name='principal'; i.value=c.id;
+    var b = el('span','box'); b.appendChild(el('span','t',c.nombre)); b.appendChild(el('span','d',c.desc));
+    i.onchange = actualizarSecs;
+    l.appendChild(i); l.appendChild(b); box.appendChild(l);
+  });
+  var sb = $('secs'); sb.textContent = '';
+  CATS.forEach(function(c){
+    var l = el('label','sec'), i = el('input'); i.type='checkbox'; i.name='sec'; i.value=c.id;
+    i.onchange = actualizarSecs;
+    l.appendChild(i); l.appendChild(el('span',null,c.nombre)); sb.appendChild(l);
+  });
+  actualizarSecs();
+}
+function principalSel(){ var r = document.querySelector('input[name=principal]:checked'); return r ? r.value : null; }
+function secsSel(){ return Array.prototype.map.call(document.querySelectorAll('input[name=sec]:checked'), function(x){ return x.value; }); }
+function actualizarSecs(){
+  var p = principalSel(), marcadas = secsSel();
+  var todas = document.querySelectorAll('input[name=sec]');
+  Array.prototype.forEach.call(todas, function(i){
+    if(i.value === p){ i.checked = false; i.disabled = true; return; }
+  });
+  marcadas = secsSel();
+  Array.prototype.forEach.call(todas, function(i){
+    if(i.value === p) return;
+    i.disabled = !i.checked && marcadas.length >= 3;
+  });
+  $('secCount').textContent = marcadas.length ? ('Elegidas: '+marcadas.length+' de 3') : '';
+}
+
+/* ---------- Envío ---------- */
+function mensaje(t, tipo){ var m = $('msg'); m.textContent = t; m.className = 'msg' + (tipo ? ' '+tipo : ''); }
+$('form').addEventListener('submit', function(ev){
+  ev.preventDefault();
+  if($('web').value) return; // trampa para robots
+  var nombre, otro = false;
+  if(!semSel){ mensaje('Elige tu semillero en el paso 1.','err'); $('buscar').focus(); return; }
+  if(semSel === '__otro'){
+    nombre = $('otroNombre').value.replace(/\s+/g,' ').trim(); otro = true;
+    if(nombre.length < 3){ mensaje('Escribe el nombre de tu semillero.','err'); $('otroNombre').focus(); return; }
+    var igual = SEMS.filter(function(s){ return norm(s.nombre)===norm(nombre) || norm(s.corto)===norm(nombre); })[0];
+    if(igual){ nombre = igual.nombre; otro = false; }
+  } else { nombre = SEMS.filter(function(s){ return s.id===semSel; })[0].nombre; }
+  var p = principalSel();
+  if(!p){ mensaje('Elige la categoría principal en el paso 2.','err'); return; }
+  var correo = $('ccorreo').value.trim();
+  if(correo && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)){ mensaje('Revisa el correo: no parece válido.','err'); $('ccorreo').focus(); return; }
+  var payload = {semillero:nombre, semillero_otro:otro, principal:p, secundarias:secsSel().filter(function(x){return x!==p;}).slice(0,3),
+    motivo:$('motivo').value.trim() || null, contacto_nombre:$('cnombre').value.trim() || null, contacto_correo:correo || null};
+  var b = $('enviar'); b.disabled = true; mensaje('Enviando…');
+  guardar(payload).then(function(){
+    mine = nombre; mensaje('');
+    var r = $('resumenEnvio'); r.textContent = '';
+    var s = semByName(nombre);
+    var a = el('p'); a.appendChild(el('strong',null,s ? s.nombre : nombre)); r.appendChild(a);
+    r.appendChild(el('p',null,'Principal: '+catName(p)));
+    r.appendChild(el('p',null,'Secundarias: '+(payload.secundarias.length ? payload.secundarias.map(catName).join(', ') : 'ninguna')));
+    $('form').hidden = true; $('gracias').hidden = false; window.scrollTo(0,0);
+    return listar().then(function(x){ respuestas = x; }).catch(function(){});
+  }).catch(function(){
+    mensaje('No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.','err');
+  }).then(function(){ b.disabled = false; });
+});
+$('verMapa').onclick = function(){ mostrar('resultados'); };
+$('otraVez').onclick = function(){ $('gracias').hidden = true; $('form').hidden = false; pintarLista(); window.scrollTo(0,0); };
+
+/* ---------- Resultados ---------- */
+function chip(nombre, tipo){
+  var s = semByName(nombre), c = el('span','chip '+tipo, s ? s.corto : nombre);
+  c.title = nombre; if(mine && mine === nombre) c.classList.add('mine'); return c;
+}
+function panelCat(c, filas, extra){
+  var pri = filas.filter(function(r){ return r.principal === c.id; });
+  var sec = filas.filter(function(r){ return r.principal !== c.id && (r.secundarias||[]).indexOf(c.id) >= 0; });
+  var p = el('section','panel'+(extra?' '+extra:''));
+  p.appendChild(el('h3',null,c.nombre));
+  p.appendChild(el('p','n',pri.length+' principal'+(pri.length===1?'':'es')+' · '+sec.length+' secundaria'+(sec.length===1?'':'s')));
+  if(!pri.length && !sec.length) p.appendChild(el('p','vacio','Aún sin respuestas'));
+  var box = el('div');
+  pri.sort(ord).forEach(function(r){ box.appendChild(chip(r.semillero,'pri')); });
+  sec.sort(ord).forEach(function(r){ box.appendChild(chip(r.semillero,'sec')); });
+  p.appendChild(box); return p;
+}
+function ord(a,b){ var x = semByName(a.semillero), y = semByName(b.semillero); return norm(x?x.corto:a.semillero).localeCompare(norm(y?y.corto:b.semillero)); }
+function cargarResultados(){
+  $('errRes').textContent = '';
+  listar().then(function(x){ respuestas = x; pintarResultados(); })
+    .catch(function(){ $('errRes').textContent = 'No se pudieron cargar las respuestas. Inténtalo de nuevo en un momento.'; pintarResultados(); });
+}
+function pintarResultados(){
+  var ya = respondidos(), enLista = SEMS.filter(function(s){ return ya[s.nombre]; }).length, otros = respuestas.length - enLista;
+  var tot = SEMS.length;
+  $('progBar').style.width = (tot ? Math.round(100*enLista/tot) : 0)+'%';
+  $('progTitulo').textContent = enLista+' de '+tot+' semilleros han respondido';
+  $('progTxt').textContent = otros > 0 ? ('Además, '+otros+(otros===1?' semillero fuera de la lista base también respondió.':' semilleros fuera de la lista base también respondieron.')) : 'Faltan '+(tot-enLista)+' por responder.';
+
+  var m = $('mapa'); m.textContent = '';
+  function C(id){ return cat(id); }
+  var orden = ['naturaleza','contribuciones','activos','calidad_vida'];
+  orden.forEach(function(id){ if(C(id)) m.appendChild(panelCat(C(id), respuestas)); });
+  if(C('instituciones')){ var pi = panelCat(C('instituciones'), respuestas, 'ancha'); m.appendChild(pi); }
+  var mot = el('div','motores'); mot.appendChild(el('h3',null,'Motores de cambio directos'));
+  ['motores_antropogenicos','motores_naturales'].forEach(function(id){ if(C(id)) mot.appendChild(panelCat(C(id), respuestas)); });
+  m.appendChild(mot);
+  if(C('socioecologicos')){ m.appendChild(panelCat(C('socioecologicos'), respuestas, 'ancha trans')); }
+  var pend = SEMS.filter(function(s){ return !ya[s.nombre]; });
+  var g = el('section','panel ancha gris'); g.appendChild(el('h3',null,'Pendientes por ubicar'));
+  g.appendChild(el('p','n',pend.length+' semillero'+(pend.length===1?'':'s')));
+  if(!pend.length) g.appendChild(el('p','vacio','Todos los semilleros de la lista ya respondieron'));
+  pend.forEach(function(s){ var c = el('span','chip pend',s.corto); c.title = s.nombre; g.appendChild(c); });
+  m.appendChild(g);
+  pintarTabla();
+}
+function previaTxt(s){
+  if(!s || !s.previa) return '—';
+  return catName(s.previa)+(s.previaSec ? ' (+ '+catName(s.previaSec)+')' : '');
+}
+function coincide(r){
+  var s = semByName(r.semillero); if(!s || !s.previa) return '—';
+  if(r.principal === s.previa) return 'Sí';
+  if((r.secundarias||[]).indexOf(s.previa) >= 0 || (s.previaSec && r.principal === s.previaSec)) return 'Parcial';
+  return 'No';
+}
+function pintarTabla(){
+  var q = norm($('filtro').value), tb = $('tbody'); tb.textContent = '';
+  var filas = respuestas.slice().sort(ord), cuenta = {'Sí':0,'Parcial':0,'No':0};
+  filas.forEach(function(r){ var c = coincide(r); if(cuenta[c] != null) cuenta[c]++; });
+  var comp = cuenta['Sí']+cuenta['Parcial']+cuenta['No'];
+  $('sumCoincide').textContent = '';
+  if(comp){
+    [['Sí','coinciden con la asignación previa en la principal'],['Parcial','la previa aparece como secundaria'],['No','ubican su semillero en otra categoría']].forEach(function(x){
+      var s = el('span'); s.appendChild(el('strong',null,cuenta[x[0]]+' ')); s.appendChild(document.createTextNode(x[1])); $('sumCoincide').appendChild(s);
+    });
+  }
+  var vis = 0;
+  filas.forEach(function(r){
+    var s = semByName(r.semillero);
+    var texto = norm(r.semillero+' '+(s?s.corto:'')+' '+catName(r.principal)+' '+(r.secundarias||[]).map(catName).join(' '));
+    if(q && texto.indexOf(q) < 0) return;
+    vis++;
+    var tr = el('tr'), td = el('td'); td.appendChild(el('strong',null,s ? s.corto : r.semillero));
+    if(!s) td.appendChild(el('div','hint','Fuera de la lista base')); tr.appendChild(td);
+    tr.appendChild(el('td',null,catName(r.principal)));
+    tr.appendChild(el('td',null,(r.secundarias||[]).map(catName).join(', ') || '—'));
+    tr.appendChild(el('td',null,previaTxt(s)));
+    var c = coincide(r), tc = el('td'); var tag = el('span','tag '+(c==='Sí'?'si':c==='No'?'no':c==='Parcial'?'par':''),c); tc.appendChild(tag); tr.appendChild(tc);
+    tr.appendChild(el('td',null,r.motivo || ''));
+    tb.appendChild(tr);
+  });
+  if(!vis){ var tr = el('tr'), td = el('td','',respuestas.length ? 'Ninguna respuesta coincide con el filtro.' : 'Aún no hay respuestas.'); td.colSpan = 6; tr.appendChild(td); tb.appendChild(tr); }
+}
+$('filtro').oninput = pintarTabla;
+$('refrescar').onclick = cargarResultados;
+$('csv').onclick = function(){
+  function q(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }
+  var l = [['Semillero','Principal','Secundarias','Asignación previa','Coincide','Comentario','Fecha'].map(q).join(',')];
+  respuestas.slice().sort(ord).forEach(function(r){
+    var s = semByName(r.semillero);
+    l.push([r.semillero, catName(r.principal), (r.secundarias||[]).map(catName).join('; '), previaTxt(s), coincide(r), r.motivo, r.created_at].map(q).join(','));
+  });
+  var blob = new Blob(['﻿'+l.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  var a = el('a'); a.href = URL.createObjectURL(blob); a.download = 'respuestas_ipbes_red_sisa.csv';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+};
+
+/* ---------- Inicio ---------- */
+if(!REMOTE) $('demo').hidden = false;
+pintarCats(); pintarLista();
+listar().then(function(x){ respuestas = x; pintarLista(); }).catch(function(){});
+mostrar(location.hash === '#resultados' ? 'resultados' : 'responder');
+window.addEventListener('hashchange', function(){ mostrar(location.hash === '#resultados' ? 'resultados' : 'responder'); });
+})();
+</script>
+</body>
+</html>
